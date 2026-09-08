@@ -3,7 +3,7 @@ local config = {
 
     -- the side length of the crossbreeding farm
     -- the recommend value is 9 because it's crop-matron's working area size.
-    farmSize = 6,
+    farmSize = 5,
     -- the side length of the new crop storage farm
     -- the recommend value is 13 because it's just enough to hold all the crops in GTNH
     storageFarmSize = 9, -- don't change
@@ -33,7 +33,7 @@ local config = {
     storageStopSlot = -3,
     -- Max breed round before termination. Used on server to avoid left-alone robot endlessly
     -- consuming resources. Set to nil for infinite loop.
-    maxBreedRound = 1000,
+    maxBreedRound = nil,
 
     -- flags
 
@@ -46,6 +46,19 @@ local config = {
     -- if you turn on this flag, you need to prepare a storage farm
     -- the recommend size is 13, which you change above.
     keepNewCropWhileMinMaxing = false,
+
+    -- moves or removes offspring asap in farming mode instead of waiting for full growth
+    focusBreedingAtFarming = true,
+
+    -- specify certain crops you want to store. Will ignore and destroy other crops.
+    -- keep the list empty for default behaviour.
+    keepSpecificCrops = {
+
+    },
+
+    -- will ignore the storage limit if turned on
+    -- only works on specified crops above
+    keepMultipleSpecficCrops = true,
 
     -- if you turn on this flag, the robot will only choose the crop with
     -- gr > 21, < 24, ga == 31, re == 0 to spread.

@@ -11,6 +11,11 @@ local signal = require("signal")
 local scanner = require("scanner")
 local posUtil = require("posUtil")
 
+local sticksplaced = 0
+-- true while the binder is bound to the main dislocator, so the next transplant
+-- can select the target crop directly without visiting the dislocator first
+local binderArmed = false
+
 local function needCharge()
     return computer.energy() / computer.maxEnergy() < config.needChargeLevel
 end
@@ -110,6 +115,7 @@ local function placeCropStick(count)
     end
     inventory_controller.equip()
     robot.select(selectedSlot)
+    sticksplaced = sticksplaced + count
 end
 
 local function deweed()
@@ -127,15 +133,31 @@ local function deweed()
     robot.select(selectedSlot)
 end
 
+local function farmSeed()
+    local selectedSlot = robot.select()
+    if config.takeCareOfDrops and fullInventory() then
+        dumpInventory()
+    end
+    robot.select(robot.inventorySize()+config.spadeSlot)
+    inventory_controller.equip()
+    robot.swingDown()
+    inventory_controller.equip()
+    robot.select(selectedSlot)
+end
+
 local function transplant(src, dest)
     local selectedSlot = robot.select()
     gps.save()
     robot.select(robot.inventorySize()+config.binderSlot)
     inventory_controller.equip()
 
+    -- bind the binder to the dislocator (skipped if the last transplant already did it)
+    if not binderArmed then
+        gps.go(config.dislocatorPos)
+        robot.useDown(sides.down)
+    end
+
     -- transfer the crop to the relay location
-    gps.go(config.dislocatorPos)
-    robot.useDown(sides.down)
     gps.go(src)
     robot.useDown(sides.down, true) -- sneak-right-click on crops to prevent harvesting
     gps.go(config.dislocatorPos)
@@ -150,6 +172,9 @@ local function transplant(src, dest)
     robot.useDown(sides.down, true)
     gps.go(config.dislocatorPos)
     signal.pulseDown()
+    -- we are at the dislocator anyway: arm the binder for the next transplant
+    robot.useDown(sides.down)
+    binderArmed = true
 
     -- destroy the original crop
     gps.go(config.relayFarmlandPos)
@@ -177,6 +202,8 @@ local function transplantToMultifarm(src, dest)
         restockStick()
     end
 
+    -- the multifarm uses other dislocators, the main one has to be re-bound afterwards
+    binderArmed = false
     robot.select(robot.inventorySize()+config.binderSlot)
     inventory_controller.equip()
 
@@ -228,14 +255,26 @@ local function destroyAll()
     end
 end
 
+local function getStickCount()
+    return sticksplaced;
+end
+
+local function resetStickCounter()
+    sticksplaced = 0
+end
+
 return {
     needCharge = needCharge,
     charge = charge,
     restockStick = restockStick,
     restockAll = restockAll,
+    dumpInventory = dumpInventory,
     placeCropStick = placeCropStick,
     deweed = deweed,
+    farmSeed = farmSeed,
     transplant = transplant,
     transplantToMultifarm = transplantToMultifarm,
-    destroyAll = destroyAll
+    destroyAll = destroyAll,
+    getStickCount = getStickCount,
+    resetStickCounter = resetStickCounter
 }

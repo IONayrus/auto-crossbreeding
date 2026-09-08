@@ -18,7 +18,9 @@ local function scan()
                 gr = rawResult["crop:growth"],
                 ga = rawResult["crop:gain"],
                 re = rawResult["crop:resistance"],
-                tier = rawResult["crop:tier"]
+                tier = rawResult["crop:tier"],
+                maxSize = rawResult["crop:maxSize"],
+                size = rawResult["crop:size"]
             }
         end
     else

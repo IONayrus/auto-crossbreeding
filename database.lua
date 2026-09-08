@@ -50,9 +50,11 @@ local function setLastMultifarmPos(pos)
     lastMultifarmPos = pos
 end
 
-local function scanFarm()
+local function scanFarm(full)
     gps.save()
-    for slot=1, config.farmArea, 2 do
+    step = 2
+    if full then step = 1 end
+    for slot=1, config.farmArea, step do
         gps.go(posUtil.farmToGlobal(slot))
         local cropInfo = scanner.scan()
         if cropInfo.name == "air" then
@@ -153,13 +155,34 @@ local function scanMultifarm()
     gps.resume()
 end
 
+local function contains(table, value)
+    for _, v in ipairs(table) do
+        if v == value then
+            return true
+        end
+    end
+    return false
+end
+
 local function existInStorage(crop)
     -- I know I can simply write "return reverseStorage[crop.name]"
     -- But I want the api have a clean return value (alway bool)
-    if reverseStorage[crop.name] then
-        return true
+    if next(config.keepSpecificCrops) == nil then
+        if reverseStorage[crop.name] then
+            return true
+        else
+            return false
+        end
     else
-        return false
+        if contains(config.keepSpecificCrops, crop.name) then
+            if config.keepMultipleSpecficCrops then
+                return false
+            else
+                return true
+            end
+        else
+            return true
+        end
     end
 end
 
@@ -180,5 +203,6 @@ return {
     addToStorage = addToStorage,
     updateFarm = updateFarm,
     nextMultifarmPos = nextMultifarmPos,
-    updateMultifarm = updateMultifarm
+    updateMultifarm = updateMultifarm,
+    contains = contains
 }
