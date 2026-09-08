@@ -8,6 +8,7 @@ local config = require("config")
 local function init()
     database.scanStorage()
     action.restockAll()
+    action.resetBinder()
 end
 
 local function main()
@@ -25,6 +26,7 @@ local function main()
             action.charge()
         end
     end
+    action.disarmBinder()
     gps.go({0,0})
 end
 

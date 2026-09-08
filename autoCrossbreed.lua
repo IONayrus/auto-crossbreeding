@@ -137,6 +137,7 @@ local function init()
     database.scanStorage()
     updateLowest()
     action.restockAll()
+    action.resetBinder()
 end
 
 local function main()
@@ -158,6 +159,8 @@ local function main()
             break;
         end
     end
+    action.disarmBinder()
+    gps.go({0,0})
 end
 
 main()

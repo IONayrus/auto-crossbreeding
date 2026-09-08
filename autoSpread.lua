@@ -242,6 +242,7 @@ local function init()
     targetCropQueue = CropQueue.new(stats);
 
     action.restockAll();
+    action.resetBinder();
     gps.resume();
 end
 
@@ -251,6 +252,7 @@ local function main()
         gps.go({0, 0})
         action.restockAll()
     end
+    action.disarmBinder()
     gps.go({0,0})
     if #args == 1 and args[1] == "docleanup" then
         cleanup();

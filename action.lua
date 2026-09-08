@@ -189,6 +189,51 @@ local function transplant(src, dest)
     robot.select(selectedSlot)
 end
 
+-- Bring the binder into a known state at program start, whatever state it was
+-- left in, and leave it armed on the main dislocator.
+local function resetBinder()
+    local selectedSlot = robot.select()
+    gps.save()
+    robot.select(robot.inventorySize()+config.binderSlot)
+    inventory_controller.equip()
+
+    -- neutral -> armed, or armed -> neutral (dislocator targets itself, harmless)
+    gps.go(config.dislocatorPos)
+    robot.useDown(sides.down)
+    -- armed -> neutral (target = relay farmland), or neutral -> nothing
+    gps.go(config.relayFarmlandPos)
+    robot.useDown(sides.down, true)
+    -- now guaranteed neutral: arm it for the first transplant
+    gps.go(config.dislocatorPos)
+    robot.useDown(sides.down)
+    binderArmed = true
+
+    inventory_controller.equip()
+    gps.resume()
+    robot.select(selectedSlot)
+end
+
+-- Leave the binder neutral at program end, so a later start (of this or any
+-- other script) does not find it unexpectedly armed.
+local function disarmBinder()
+    if not binderArmed then
+        return
+    end
+    local selectedSlot = robot.select()
+    gps.save()
+    robot.select(robot.inventorySize()+config.binderSlot)
+    inventory_controller.equip()
+
+    -- armed -> neutral, target = relay farmland (harmless without a pulse)
+    gps.go(config.relayFarmlandPos)
+    robot.useDown(sides.down, true)
+    binderArmed = false
+
+    inventory_controller.equip()
+    gps.resume()
+    robot.select(selectedSlot)
+end
+
 local function transplantToMultifarm(src, dest)
     local globalDest = posUtil.multifarmPosToGlobalPos(dest)
     local optimalDislocatorSet = posUtil.findOptimalDislocator(dest)
@@ -202,10 +247,17 @@ local function transplantToMultifarm(src, dest)
         restockStick()
     end
 
-    -- the multifarm uses other dislocators, the main one has to be re-bound afterwards
-    binderArmed = false
     robot.select(robot.inventorySize()+config.binderSlot)
     inventory_controller.equip()
+
+    -- an armed binder would make the multifarm dislocator the target of the
+    -- main one: neutralize it first (target = src, harmless without a pulse).
+    -- The main dislocator gets re-armed by the next transplant.
+    if binderArmed then
+        gps.go(src)
+        robot.useDown(sides.down, true)
+        binderArmed = false
+    end
 
     -- transfer the crop to the relay location
     gps.go(config.elevatorPos)
@@ -274,6 +326,8 @@ return {
     farmSeed = farmSeed,
     transplant = transplant,
     transplantToMultifarm = transplantToMultifarm,
+    resetBinder = resetBinder,
+    disarmBinder = disarmBinder,
     destroyAll = destroyAll,
     getStickCount = getStickCount,
     resetStickCounter = resetStickCounter

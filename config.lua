@@ -21,7 +21,7 @@ local config = {
     dislocatorPos = {0, 3},
     -- the coordinate for the container to store seeds, products, etc
     -- has no effect unless you turn on "takeCareOfDrops" flag.
-    storagePos = {0, 5},
+    storagePos = {0, 4},
 
     -- the slot for spade, count from 0, count from bottom-right to top-left
     spadeSlot = 0,
@@ -34,6 +34,11 @@ local config = {
     -- Max breed round before termination. Used on server to avoid left-alone robot endlessly
     -- consuming resources. Set to nil for infinite loop.
     maxBreedRound = nil,
+
+    -- the stat sum (growth + gain - resistance) every parent has to reach before
+    -- autoStat stops breeding (and, with "autoStat fill", every slot of the farm).
+    -- 52 is the maximum (21 + 31 - 0). The "farm" mode always requires 52.
+    targetStat = 50,
 
     -- flags
 

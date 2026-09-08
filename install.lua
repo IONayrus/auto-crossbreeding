@@ -8,6 +8,7 @@ local scripts = {
     "posUtil.lua",
     "scanner.lua",
     "signal.lua",
+    "status.lua",
     "autoStat.lua",
     "autoCrossbreed.lua",
     "autoSpread.lua",
